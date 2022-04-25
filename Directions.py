@@ -8,6 +8,9 @@ class Direction(Enum):
     EAST = auto()
     WEST = auto()
 
+    def __str__(self):
+        return self.name[0]
+
     @staticmethod
     def get_rand_dir():
         return random.choice(Direction.get_all())
@@ -57,3 +60,6 @@ class Direction(Enum):
             return Direction.SOUTH
         elif self == Direction.WEST:
             return Direction.NORTH
+
+    def to_char(self):
+        return str(self)
