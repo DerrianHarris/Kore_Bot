@@ -1,8 +1,10 @@
+from typing import Tuple, List
+
 from Directions import Direction
 from kaggle_environments.helpers import Point
 
-RouteEntry = tuple[int, Direction]
-Route = list[RouteEntry]
+RouteEntry = Tuple[int, Direction]
+Route = List[RouteEntry]
 
 
 class FleetRoute:
@@ -25,20 +27,26 @@ class FleetRoute:
         return len(self.to_flight_plan()) > 0
 
     @staticmethod
-    def to_point(from_point: Point, to_point: Point):
-        diff = to_point - from_point
-        y_dir = Direction.NORTH if diff.y > 0 else Direction.SOUTH
-        x_dir = Direction.EAST if diff.x > 0 else Direction.WEST
-        diff = diff.map(abs)
-        return FleetRoute.crowbar(diff.x, x_dir, diff.y, y_dir)
+    def to_point(from_point: Point, to_point: Point, board_size: int):
+        abs_delta, dirs = FleetRoute.get_initial_path_info(from_point, to_point, board_size)
+        return FleetRoute.crowbar(abs_delta.x, dirs[0], abs_delta.y, dirs[1])
 
     @staticmethod
-    def to_point_rect(from_point: Point, to_point: Point):
-        diff = to_point - from_point
-        y_dir = Direction.NORTH if diff.y > 0 else Direction.SOUTH
-        x_dir = Direction.EAST if diff.x > 0 else Direction.WEST
-        diff = diff.map(abs)
-        return FleetRoute.rectangle(diff.x, x_dir, diff.y, y_dir)
+    def to_point_rect(from_point: Point, to_point: Point,board_size: int):
+        abs_delta, dirs = FleetRoute.get_initial_path_info(from_point, to_point, board_size)
+        return FleetRoute.rectangle(abs_delta.x, dirs[0], abs_delta.y, dirs[1])
+
+    @staticmethod
+    def get_initial_path_info(from_point: Point, to_point: Point, board_size: int):
+        delta = to_point - from_point
+        abs_delta = delta.map(abs)
+        mag_delta = Point(1 if to_point.x > from_point.x else -1, 1 if to_point.y > from_point.y else -1)
+        dir_delta = Point(mag_delta.x if abs_delta.x < board_size * .5 else -mag_delta.x,
+                          mag_delta.y if abs_delta.y < board_size * .5 else -mag_delta.y)
+        dirs = (Direction.EAST if dir_delta.x == 1 else Direction.WEST, Direction.NORTH if dir_delta.y == 1 else Direction.SOUTH)
+        return abs_delta, dirs
+
+
 
     # These return to the shipyard
     @staticmethod
