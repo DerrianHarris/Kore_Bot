@@ -3,6 +3,8 @@ from typing import Tuple, List
 from Directions import Direction
 from kaggle_environments.helpers import Point
 
+from BoardHelpers import  get_min_fleet_size_from_flight_plan
+
 RouteEntry = Tuple[int, Direction]
 Route = List[RouteEntry]
 
@@ -23,8 +25,9 @@ class FleetRoute:
             flight_plan += flight_string
         return flight_plan
 
-    def is_valid(self):
-        return len(self.to_flight_plan()) > 0
+    def is_valid(self, fleet_size: int):
+        flight_plan_str = self.to_flight_plan()
+        return len(flight_plan_str) > 0 and fleet_size >= get_min_fleet_size_from_flight_plan(flight_plan_str)
 
     @staticmethod
     def to_point(from_point: Point, to_point: Point, board_size: int):
@@ -41,9 +44,15 @@ class FleetRoute:
         delta = to_point - from_point
         abs_delta = delta.map(abs)
         mag_delta = Point(1 if to_point.x > from_point.x else -1, 1 if to_point.y > from_point.y else -1)
-        dir_delta = Point(mag_delta.x if abs_delta.x < board_size * .5 else -mag_delta.x,
-                          mag_delta.y if abs_delta.y < board_size * .5 else -mag_delta.y)
+
+        mag_ck_x = abs_delta.x < board_size * .5
+        mag_ck_y = abs_delta.y < board_size * .5
+
+        dir_delta = Point(mag_delta.x if mag_ck_x else -mag_delta.x,
+                          mag_delta.y if mag_ck_y else -mag_delta.y)
         dirs = (Direction.EAST if dir_delta.x == 1 else Direction.WEST, Direction.NORTH if dir_delta.y == 1 else Direction.SOUTH)
+
+        abs_delta = Point(abs_delta.x if mag_ck_x else board_size - abs_delta.x, abs_delta.y if mag_ck_y else board_size - abs_delta.y)
         return abs_delta, dirs
 
 

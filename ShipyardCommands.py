@@ -53,13 +53,14 @@ def mining(board: Board, player: Player):
             flight_plan = FleetRoute.to_point_rect(shipyard.position, deposit.position, board.configuration.size)
             if not is_fleet_enroute(player, flight_plan):
                 break
-        if flight_plan and flight_plan.is_valid():
+        if flight_plan:
             flight_plan_str = flight_plan.to_flight_plan()
             fleet_size = max(get_min_fleet_size_from_flight_plan(flight_plan_str), min_mining_ships)
-            if shipyard.ship_count > fleet_size:
-                if DEBUG:
-                    print(f"Moving to mine largest kore deposit - Position: {deposit.position} Kore: {deposit.kore} Flight Plan: {flight_plan.to_flight_plan()} Turn: {turn}")
-                shipyard.next_action = ShipyardAction.launch_fleet_with_flight_plan(fleet_size, flight_plan_str)
+            if flight_plan.is_valid(fleet_size):
+                if shipyard.ship_count > fleet_size:
+                    if DEBUG:
+                        print(f"Moving to mine largest kore deposit - Position: {deposit.position} Kore: {deposit.kore} Flight Plan: {flight_plan.to_flight_plan()} Turn: {turn}")
+                    shipyard.next_action = ShipyardAction.launch_fleet_with_flight_plan(fleet_size, flight_plan_str)
 
 
 def expansion(board: Board, player: Player):
@@ -83,7 +84,7 @@ def expansion(board: Board, player: Player):
                 continue
 
             fleet_size = min_expansion_ships
-            if shipyard.ship_count > fleet_size * 1.1 and flight_plan.is_valid():
+            if shipyard.ship_count > fleet_size * 1.1 and flight_plan.is_valid(fleet_size):
                 if DEBUG:
                     print(f"Moving to create shipyard - Position: {best_shipyard_pos} Flight Plan: {flight_plan_str}  Turn: {turn}")
                 shipyard.next_action = ShipyardAction.launch_fleet_with_flight_plan(fleet_size, flight_plan_str)
@@ -96,6 +97,9 @@ def fleet_attack(board: Board, player: Player):
 def shipyard_attack(board: Board, player: Player):
     search_range = 10
     shipyards = player.shipyards
+
+    should_attack_all = get_total_opp_ship_count(board.opponents) * 2 < get_player_ship_count(player)
+
     turn = board.step
 
     for shipyard in shipyards:
@@ -103,15 +107,20 @@ def shipyard_attack(board: Board, player: Player):
             continue
         nearest_enemy_shipyard, dist = get_nearest_enemy_shipyard(shipyard.position, board, player, search_range)
         if nearest_enemy_shipyard:
-            attack_fleet_size = nearest_enemy_shipyard.ship_count + 10;
-            if shipyard.ship_count >= attack_fleet_size:
+
+            if should_attack_all:
+                attack_fleet_size = shipyard.ship_count;
+            else:
+                attack_fleet_size = nearest_enemy_shipyard.ship_count + 10;
+
+            if 0 < attack_fleet_size <= shipyard.ship_count:
                 nearest_enemy_shipyard_pos = nearest_enemy_shipyard.position
                 flight_plan = FleetRoute.to_point(shipyard.position, nearest_enemy_shipyard_pos,
                                                   board.configuration.size)
                 flight_plan_str = flight_plan.to_flight_plan()
                 if is_fleet_enroute(player, flight_plan):
                     continue
-                if flight_plan.is_valid():
+                if flight_plan.is_valid(attack_fleet_size):
                     if DEBUG:
                         print(f"Moving to attack shipyard - Position: {nearest_enemy_shipyard_pos} Flight Plan: {flight_plan_str}  Turn: {turn}")
                     shipyard.next_action = ShipyardAction.launch_fleet_with_flight_plan(attack_fleet_size,
