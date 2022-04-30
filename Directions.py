@@ -19,6 +19,17 @@ class Direction(Enum):
     def get_all():
         return [Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST]
 
+    @staticmethod
+    def from_char(val: str):
+        if val == "N":
+            return Direction.NORTH
+        if val == "S":
+            return Direction.SOUTH
+        if val == "W":
+            return Direction.WEST
+        if val == "E":
+            return Direction.EAST
+
     def get_opp_dir(self):
         if self == Direction.NORTH:
             return Direction.SOUTH
@@ -63,3 +74,6 @@ class Direction(Enum):
 
     def to_char(self):
         return str(self)
+
+
+
