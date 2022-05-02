@@ -8,19 +8,23 @@ import FleetRoute
 SHIPYARD_ACTIONS = [None, 'SPAWN', 'LAUNCH']
 
 
+def point_to_index(point, size):
+    return point.x + point.y * size
+
+
 def transform_actions(actions, obs, config):
     next_actions = {}
     board = Board(obs, config)
     player = board.current_player
 
     for shipyard in player.shipyards:
-        index = shipyard.position.to_index(config.size) - 2
+        index = shipyard.position.to_index(config.size)
 
-        print(index, shipyard.position, actions[index : index + 6])
+        print(index, shipyard.position, actions[index: index + 6])
         shipyard_action = actions[index + 0]
         fleet_route_type = FleetRoute.FleetRouteType(actions[index + 1] + 1)
         x_pos = actions[index + 2]
-        y_pos= actions[index + 3]
+        y_pos = actions[index + 3]
         should_convert = bool(actions[index + 4])
         ships_per = actions[index + 5]
 
@@ -30,7 +34,9 @@ def transform_actions(actions, obs, config):
             if num_ships > 0:
                 next_actions[shipyard.id] = ShipyardAction.spawn_ships(num_ships).name
         elif SHIPYARD_ACTIONS[shipyard_action] == 'LAUNCH':
-            flight_plan = FleetRoute.FleetRoute.to_pos(shipyard.position, Point(x_pos, y_pos), config.size, fleet_route_type).to_flight_plan()[0] + 'C' if should_convert else ''
+            flight_plan = FleetRoute.FleetRoute.to_pos(shipyard.position, Point(x_pos, y_pos), config.size,
+                                                       fleet_route_type).to_flight_plan()[
+                              0] + 'C' if should_convert else ''
             num_ships = math.floor(shipyard.ship_count * (ships_per / 100))
             if num_ships > 0 and len(flight_plan) > 0:
                 next_actions[shipyard.id] = ShipyardAction.launch_fleet_with_flight_plan(num_ships, flight_plan).name
