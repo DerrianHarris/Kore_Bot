@@ -36,7 +36,7 @@ def transform_actions(actions, obs, config):
                                                        fleet_route_type).to_flight_plan()[
                               0] + 'C' if should_convert else ''
             num_ships = math.floor(shipyard.ship_count * (ships_per / 100))
-            if num_ships > 0 and len(flight_plan) > 0:
+            if num_ships > 0 and len(flight_plan) > 0 and flight_plan[0].isalpha() and flight_plan[0] in "NESW":
                 next_actions[shipyard.id] = ShipyardAction.launch_fleet_with_flight_plan(num_ships, flight_plan).name
         else:
             next_actions[shipyard.id] = None

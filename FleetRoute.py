@@ -2,6 +2,7 @@
 import math
 import re
 from enum import Enum, auto
+from os import error
 
 from Directions import Direction
 from kaggle_environments.helpers import Point
@@ -71,14 +72,12 @@ class FleetRoute:
 
     @staticmethod
     def to_pos(from_point: Point, to_point: Point, board_size: int, fleet_route_type: FleetRouteType):
-        fleet_route = None
         if fleet_route_type == FleetRouteType.RECTANGLE:
-            fleet_route = FleetRoute.to_point_rect(from_point, to_point, board_size)
+            return FleetRoute.to_point_rect(from_point, to_point, board_size)
         elif fleet_route_type == FleetRouteType.CROWBAR:
-            fleet_route = FleetRoute.to_point_crowbar(from_point, to_point, board_size)
+            return FleetRoute.to_point_crowbar(from_point, to_point, board_size)
         else:
-            print("Fleet route type does not exist!")
-        return fleet_route
+            raise error("Fleet route type does not exist!")
 
     @staticmethod
     def to_point_crowbar(from_point: Point, to_point: Point, board_size: int):
