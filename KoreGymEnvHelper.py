@@ -125,8 +125,7 @@ def transform_observation(done, obs, config, num_features):
                        opp_fleets_cargo,
                        directions))
 
-    x_obs = x_obs.reshape((config.size, config.size, num_features))
-    x_obs = x_obs.astype(np.float32)
+    x_obs = np.nan_to_num(x_obs.reshape((config.size, config.size, num_features))).astype(np.float32)
     return x_obs
 
 
