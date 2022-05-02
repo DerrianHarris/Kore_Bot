@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
       <excludeFolder url="file://$MODULE_DIR$/Kevin" />
       <excludeFolder url="file://$MODULE_DIR$/Matt" />
+      <excludeFolder url="file://$MODULE_DIR$/Derrian" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.7 (venv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

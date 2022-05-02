@@ -7,16 +7,15 @@ def agent(obs, config):
     player = board.current_player
 
     # Shipyard Defense -
-    shipyard_defense(board, player)
+    # shipyard_defense(board, player)
     # Shipyard Attack -
     shipyard_attack(board, player)
     # Fleet Attack -
-    fleet_attack(board, player)
+    # fleet_attack(board, player)
     # Shipyard Expansion -
     expansion(board, player)
     # Mining -
     mining(board, player)
     # Spawn -
     spawn(board, player)
-
     return player.next_actions

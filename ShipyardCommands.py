@@ -84,7 +84,7 @@ def expansion(board: Board, player: Player):
             if will_fleet_cross_position(best_shipyard_pos, player, board, True):
                 continue
 
-            flight_plan = FleetRoute.to_point(shipyard.position, best_shipyard_pos, board.configuration.size)
+            flight_plan = FleetRoute.to_point_crowbar(shipyard.position, best_shipyard_pos, board.configuration.size)
             flight_plan_str, _ = flight_plan.to_flight_plan()
             flight_plan_str += "C"
 
@@ -152,8 +152,8 @@ def shipyard_attack(board: Board, player: Player):
 
             if 0 < attack_fleet_size <= shipyard.ship_count:
 
-                flight_plan = FleetRoute.to_point(shipyard.position, nearest_enemy_shipyard_pos,
-                                                  board.configuration.size)
+                flight_plan = FleetRoute.to_point_crowbar(shipyard.position, nearest_enemy_shipyard_pos,
+                                                          board.configuration.size)
                 flight_plan_str, _ = flight_plan.to_flight_plan()
 
                 if flight_plan.is_valid(board.step, 400):
