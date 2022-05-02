@@ -126,7 +126,7 @@ def transform_observation(done, obs, config, num_features):
                        directions))
 
     x_obs = np.nan_to_num(x_obs.reshape((config.size, config.size, num_features))).astype(np.float32)
-    test = x_obs[np.any([np.isfinite(x_obs)])]
+    test = np.argwhere(np.isnan(x_obs))
     print(test)
     return x_obs
 
