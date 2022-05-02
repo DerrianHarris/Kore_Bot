@@ -21,12 +21,12 @@ def transform_actions(actions, obs, config):
         index = shipyard.position.to_index(config.size)
 
         print(index, shipyard.position, actions[index: index + 6])
-        shipyard_action = actions[index + 0]
-        fleet_route_type = FleetRoute.FleetRouteType(actions[index + 1] + 1)
-        x_pos = actions[index + 2]
-        y_pos = actions[index + 3]
-        should_convert = bool(actions[index + 4])
-        ships_per = actions[index + 5]
+        shipyard_action = actions[index + 5]
+        fleet_route_type = FleetRoute.FleetRouteType(actions[index + 4] + 1)
+        x_pos = actions[index + 3]
+        y_pos = actions[index + 2]
+        should_convert = bool(actions[index + 1])
+        ships_per = actions[index + 0]
 
         if SHIPYARD_ACTIONS[shipyard_action] == 'SPAWN':
             max_ships = min(player.kore / config.spawnCost, shipyard.max_spawn)
