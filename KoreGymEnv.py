@@ -50,7 +50,7 @@ class KoreGymEnv(Env):
     def reset(self):
         self.obs = self.reset_env()
         self.last_obs = None
-        x_obs = transform_observation(False, self.obs, self.config, self.num_features)
+        x_obs = transform_observation(self.obs.done, self.obs, self.config, self.num_features)
         return x_obs
 
     def reset_env(self) -> Environment:
