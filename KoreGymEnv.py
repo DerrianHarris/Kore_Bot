@@ -42,8 +42,8 @@ class KoreGymEnv(Env):
         x_obs = transform_observation(done, self.obs, self.config, self.num_features)
         x_reward = transform_reward(done, self.last_obs, self.obs, self.config)
 
-        if x_reward <= REWARD_LOST:
-            done, info = True, {}
+        info = {}
+        done = self.kore_env.done
 
         return x_obs, x_reward, done, info
 
