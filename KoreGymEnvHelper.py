@@ -5,7 +5,7 @@ from kaggle_environments.envs.kore_fleets.helpers import Board, ShipyardAction
 from kaggle_environments.helpers import Point
 import FleetRoute
 
-SHIPYARD_ACTIONS = [None, 'SPAWN', 'LAUNCH']
+SHIPYARD_ACTIONS = [None, 'SPAWN', 'LAUNCH', 'EXPAND']
 
 
 def point_to_index(point, size):
@@ -23,18 +23,18 @@ def transform_actions(actions, obs, config):
         fleet_route_type = FleetRoute.FleetRouteType(actions[index + 1] + 1)
         x_pos = actions[index + 2]
         y_pos = actions[index + 3]
-        should_convert = bool(actions[index + 4])
-        ships_per = actions[index + 5]
+        ships_per = actions[index + 4]
 
         if SHIPYARD_ACTIONS[shipyard_action] == 'SPAWN':
             max_ships = min(player.kore / config.spawnCost, shipyard.max_spawn)
             num_ships = math.floor(max_ships * (ships_per / 100))
             if num_ships > 0:
                 next_actions[shipyard.id] = ShipyardAction.spawn_ships(num_ships).name
-        elif SHIPYARD_ACTIONS[shipyard_action] == 'LAUNCH':
+        elif SHIPYARD_ACTIONS[shipyard_action] == 'LAUNCH' or 'EXPAND':
             flight_plan = FleetRoute.FleetRoute.to_pos(shipyard.position, Point(x_pos, y_pos), config.size,
                                                        fleet_route_type).to_flight_plan()[
-                              0] + 'C' if should_convert else ''
+                              0]
+            flight_plan = flight_plan + 'C' if SHIPYARD_ACTIONS[shipyard_action] == 'EXPAND' else ''
             num_ships = math.floor(shipyard.ship_count * (ships_per / 100))
             if num_ships > 0 and len(flight_plan) > 0 and flight_plan[0].isalpha() and flight_plan[0] in "NESW":
                 next_actions[shipyard.id] = ShipyardAction.launch_fleet_with_flight_plan(num_ships, flight_plan).name

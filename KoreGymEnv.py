@@ -26,7 +26,6 @@ class KoreGymEnv(Env):
              2,  # Fleet Route Type
              self.config.size - 1,  # X location
              self.config.size - 1,  # Y location
-             2,  # Convert flag
              100] * ((self.config.size) * (self.config.size)))  # % amount of ships
         self.observation_space = spaces.Box(low=0, high=1,
                                             shape=(self.config.size, self.config.size, self.num_features))
