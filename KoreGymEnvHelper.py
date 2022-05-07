@@ -18,7 +18,7 @@ def transform_actions(actions, obs, config):
     player = board.current_player
 
     for shipyard in player.shipyards:
-        index = 0#shipyard.position.to_index(config.size) * 6
+        index = shipyard.position.to_index(config.size) * 6
         shipyard_action = actions[index]
         fleet_route_type = FleetRoute.FleetRouteType(actions[index + 1] + 1)
         x_pos = actions[index + 2]
