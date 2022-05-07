@@ -11,27 +11,24 @@ from KoreGymEnvHelper import transform_observation, transform_actions, SHIPYARD_
 
 class KoreGymEnv(Env):
     def __init__(self, opponent):
-        self.kore_env = make("kore_fleets", debug=True)
-        self.config = self.kore_env.configuration
-
-        self.num_features = 12
+        self.num_features = 14
         self.agents = [None, opponent]
 
+        self.config = None
+        self.kore_env = None
         self.env = None
         self.obs = self.reset_env()
         self.last_obs = None
 
-
-
         #
         self.action_space = spaces.MultiDiscrete(
-            [len(SHIPYARD_ACTIONS), # Action the shipyard should take i.e. Spawn/Launch ship
-             2,                     # Fleet Route Type
-             self.config.size - 1,      # X location
-             self.config.size - 1,      # Y location
-             2,                     # Convert flag
-             100] * ((self.config.size - 1) * (self.config.size - 1)))                  # % amount of ships
-        self.observation_space = spaces.Box(low=0, high=math.inf,
+            [len(SHIPYARD_ACTIONS),  # Action the shipyard should take i.e. Spawn/Launch ship
+             2,  # Fleet Route Type
+             self.config.size - 1,  # X location
+             self.config.size - 1,  # Y location
+             2,  # Convert flag
+             100] * ((self.config.size) * (self.config.size)))  # % amount of ships
+        self.observation_space = spaces.Box(low=0, high=1,
                                             shape=(self.config.size, self.config.size, self.num_features))
 
     def step(self, actions):
@@ -54,6 +51,8 @@ class KoreGymEnv(Env):
         return x_obs
 
     def reset_env(self) -> Environment:
+        self.kore_env = make("kore_fleets", debug=True)
+        self.config = self.kore_env.configuration
         shuffle(self.agents)
         self.env = self.kore_env.train(self.agents)
         return self.env.reset()

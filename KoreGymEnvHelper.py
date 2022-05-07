@@ -18,7 +18,7 @@ def transform_actions(actions, obs, config):
     player = board.current_player
 
     for shipyard in player.shipyards:
-        index = shipyard.position.to_index(config.size) * 6
+        index = 0#shipyard.position.to_index(config.size) * 6
         shipyard_action = actions[index]
         fleet_route_type = FleetRoute.FleetRouteType(actions[index + 1] + 1)
         x_pos = actions[index + 2]
@@ -42,6 +42,10 @@ def transform_actions(actions, obs, config):
             next_actions[shipyard.id] = None
     return next_actions
 
+MAX_KORE = 9149200
+MAX_SHIPS = 1764000
+MAX_SHIP_SPAWN = 10
+MAX_DIRECTION = 4
 
 def transform_observation(done, obs, config, num_features):
     board = Board(obs, config)
@@ -56,9 +60,11 @@ def transform_observation(done, obs, config, num_features):
     opp_kore = []
     opp_cargo = []
     player_shipyards = []
+    player_shipyards_max_spawn = []
     player_fleets = []
     player_fleets_cargo = []
     opp_shipyards = []
+    opp_shipyards_max_spawn = []
     opp_fleets = []
     opp_fleets_cargo = []
 
@@ -74,10 +80,10 @@ def transform_observation(done, obs, config, num_features):
         step.append(obs['step'] / config.episodeSteps)
         done_step.append(int(done))
 
-        player_kore.append(player_kore_val)
-        player_cargo.append(player_cargo_val)
-        opp_kore.append(opp_kore_val)
-        opp_cargo.append(opp_cargo_val)
+        player_kore.append(player_kore_val / MAX_KORE)
+        player_cargo.append(player_cargo_val / MAX_KORE)
+        opp_kore.append(opp_kore_val / MAX_KORE)
+        opp_cargo.append(opp_cargo_val / MAX_KORE)
 
         if cell.fleet is None:
             player_fleets.append(0)
@@ -87,30 +93,37 @@ def transform_observation(done, obs, config, num_features):
             directions.append(0)
 
         elif cell.fleet in player.shipyards:
-            player_fleets.append(1)
-            player_fleets_cargo.append(cell.fleet.kore)
+            player_fleets.append(cell.fleet.ship_count / MAX_SHIPS)
+            player_fleets_cargo.append(cell.fleet.kore / MAX_KORE)
             opp_fleets.append(0)
             opp_fleets_cargo.append(0)
-            directions.append(cell.fleet.direction.to_index())
+            directions.append((cell.fleet.direction.to_index() + 1) / MAX_DIRECTION)
 
         else:
             player_fleets.append(0)
             player_fleets_cargo.append(0)
-            opp_fleets.append(1)
-            opp_fleets_cargo.append(cell.fleet.kore)
-            directions.append(cell.fleet.direction.to_index())
+            opp_fleets.append(cell.fleet.ship_count / MAX_SHIPS)
+            opp_fleets_cargo.append(cell.fleet.kore / MAX_KORE)
+            directions.append((cell.fleet.direction.to_index() + 1) / MAX_DIRECTION)
 
         if cell.shipyard is None:
             player_shipyards.append(0)
             opp_shipyards.append(0)
+            player_shipyards_max_spawn.append(0)
+            opp_shipyards_max_spawn.append(0)
 
         elif cell.shipyard in player.shipyards:
-            player_shipyards.append(1)
+            player_shipyards.append(cell.shipyard.ship_count / MAX_KORE)
+            player_shipyards_max_spawn.append(cell.shipyard.max_spawn / MAX_SHIP_SPAWN)
             opp_shipyards.append(0)
+            opp_shipyards_max_spawn.append(0)
+
 
         else:
             player_shipyards.append(0)
-            opp_shipyards.append(1)
+            player_shipyards_max_spawn.append(0)
+            opp_shipyards.append(cell.shipyard.ship_count / MAX_KORE)
+            opp_shipyards_max_spawn.append(cell.shipyard.max_spawn / MAX_SHIP_SPAWN)
 
     x_obs = np.vstack((step,
                        done_step,
@@ -118,9 +131,11 @@ def transform_observation(done, obs, config, num_features):
                        player_cargo,
                        opp_cargo,
                        player_shipyards,
+                       player_shipyards_max_spawn,
                        player_fleets,
                        player_fleets_cargo,
                        opp_shipyards,
+                       opp_shipyards_max_spawn,
                        opp_fleets,
                        opp_fleets_cargo,
                        directions))
