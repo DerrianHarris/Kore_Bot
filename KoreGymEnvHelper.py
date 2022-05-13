@@ -46,9 +46,13 @@ def transform_actions(actions, obs, config):
 MAX_SHIP_SPAWN = 10
 
 
-def transform_observation(done, obs, config, num_features, ):
+def transform_observation(done, obs, config, num_features):
     board = Board(obs, config)
     player = board.current_player
+
+    MAX_KORE = (config.maxRegenCellKore * .3) * config.size * config.size * config.episodeSteps
+    MAX_SHIPS = MAX_KORE / config.spawnCost
+    MAX_DIRECTIONS = 4
 
     board_cells = board.cells
 
@@ -62,12 +66,12 @@ def transform_observation(done, obs, config, num_features, ):
     player_shipyards_max_spawn = []
     player_fleets = []
     player_fleets_cargo = []
+    player_fleets_directions = []
     opp_shipyards = []
     opp_shipyards_max_spawn = []
     opp_fleets = []
     opp_fleets_cargo = []
-
-    directions = []
+    opp_fleets_directions = []
 
     player_kore_val = player.kore
     opp_kore_val = max(p.kore for p in board.opponents)
@@ -79,31 +83,34 @@ def transform_observation(done, obs, config, num_features, ):
         step.append(obs['step'] / config.episodeSteps)
         done_step.append(int(done))
 
-        player_kore.append(player_kore_val)
-        player_cargo.append(player_cargo_val)
-        opp_kore.append(opp_kore_val)
-        opp_cargo.append(opp_cargo_val)
+        player_kore.append(player_kore_val / MAX_KORE)
+        player_cargo.append(player_cargo_val / MAX_KORE)
+        opp_kore.append(opp_kore_val / MAX_KORE)
+        opp_cargo.append(opp_cargo_val / MAX_KORE)
 
         if cell.fleet is None:
             player_fleets.append(0)
             player_fleets_cargo.append(0)
+            player_fleets_directions.append(0)
             opp_fleets.append(0)
             opp_fleets_cargo.append(0)
-            directions.append(0)
+            opp_fleets_directions.append(0)
 
-        elif cell.fleet in player.shipyards:
-            player_fleets.append(cell.fleet.ship_count)
-            player_fleets_cargo.append(cell.fleet.kore)
+        elif cell.fleet in player.fleets:
+            player_fleets.append(cell.fleet.ship_count / MAX_SHIPS)
+            player_fleets_cargo.append(cell.fleet.kore / MAX_KORE)
+            player_fleets_directions.append((cell.fleet.direction.to_index() + 1) / MAX_DIRECTIONS)
             opp_fleets.append(0)
             opp_fleets_cargo.append(0)
-            directions.append(cell.fleet.direction.to_index() + 1)
+            opp_fleets_directions.append(0)
 
         else:
             player_fleets.append(0)
             player_fleets_cargo.append(0)
+            player_fleets_directions.append(0)
             opp_fleets.append(cell.fleet.ship_count)
             opp_fleets_cargo.append(cell.fleet.kore)
-            directions.append(cell.fleet.direction.to_index() + 1)
+            opp_fleets_directions.append((cell.fleet.direction.to_index() + 1) / MAX_DIRECTIONS)
 
         if cell.shipyard is None:
             player_shipyards.append(0)
@@ -112,7 +119,7 @@ def transform_observation(done, obs, config, num_features, ):
             opp_shipyards_max_spawn.append(0)
 
         elif cell.shipyard in player.shipyards:
-            player_shipyards.append(cell.shipyard.ship_count)
+            player_shipyards.append(cell.shipyard.ship_count / MAX_SHIPS)
             player_shipyards_max_spawn.append(cell.shipyard.max_spawn / MAX_SHIP_SPAWN)
             opp_shipyards.append(0)
             opp_shipyards_max_spawn.append(0)
@@ -121,7 +128,7 @@ def transform_observation(done, obs, config, num_features, ):
         else:
             player_shipyards.append(0)
             player_shipyards_max_spawn.append(0)
-            opp_shipyards.append(cell.shipyard.ship_count)
+            opp_shipyards.append(cell.shipyard.ship_count / MAX_SHIPS)
             opp_shipyards_max_spawn.append(cell.shipyard.max_spawn / MAX_SHIP_SPAWN)
 
     x_obs = np.vstack((step,
@@ -133,11 +140,12 @@ def transform_observation(done, obs, config, num_features, ):
                        player_shipyards_max_spawn,
                        player_fleets,
                        player_fleets_cargo,
+                       player_fleets_directions,
                        opp_shipyards,
                        opp_shipyards_max_spawn,
                        opp_fleets,
                        opp_fleets_cargo,
-                       directions))
+                       opp_fleets_directions))
 
     x_obs = np.nan_to_num(x_obs.reshape((config.size, config.size, num_features))).astype(np.float32)
     return x_obs
@@ -150,10 +158,6 @@ REWARD_LOST = -REWARD_WON
 def transform_reward(done, last_obs, obs, config):
     board = Board(obs, config)
     player = board.current_player
-
-    MAX_KORE = (config.maxRegenCellKore * .3) * config.size * config.size * config.episodeSteps
-    MAX_SHIPS = MAX_KORE / config.spawnCost
-    MAX_SHIPYARDS = config.size * config.size
 
     num_fleets = len(player.fleets)
     num_shipyards = len(player.shipyards)

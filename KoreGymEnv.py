@@ -11,7 +11,7 @@ from KoreGymEnvHelper import transform_observation, transform_actions, SHIPYARD_
 
 class KoreGymEnv(Env):
     def __init__(self, opponent):
-        self.num_features = 14
+        self.num_features = 15
         self.agents = [None, opponent]
 
         self.config = None
@@ -27,7 +27,7 @@ class KoreGymEnv(Env):
              self.config.size - 1,  # X location
              self.config.size - 1,  # Y location
              100] * ((self.config.size) * (self.config.size)))  # % amount of ships
-        self.observation_space = spaces.Box(low=0, high=math.inf,
+        self.observation_space = spaces.Box(low=0, high=1,
                                             shape=(self.config.size, self.config.size, self.num_features))
 
     def step(self, actions):
