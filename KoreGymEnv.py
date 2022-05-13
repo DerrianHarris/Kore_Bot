@@ -27,7 +27,7 @@ class KoreGymEnv(Env):
              self.config.size - 1,  # X location
              self.config.size - 1,  # Y location
              100] * ((self.config.size) * (self.config.size)))  # % amount of ships
-        self.observation_space = spaces.Box(low=0, high=1,
+        self.observation_space = spaces.Box(low=0, high=math.inf,
                                             shape=(self.config.size, self.config.size, self.num_features))
 
     def step(self, actions):
