@@ -10,15 +10,16 @@ from KoreGymEnvHelper import transform_observation, transform_actions, SHIPYARD_
 
 
 class KoreGymEnv(Env):
-    def __init__(self, opponent):
+    def __init__(self, opponent, debug=False):
         self.num_features = 15
         self.agents = [None, opponent]
-
+        self.debug = debug
         self.config = None
         self.kore_env = None
         self.env = None
         self.obs = self.reset_env()
         self.last_obs = None
+
 
         #
         self.action_space = spaces.MultiDiscrete(
@@ -38,8 +39,8 @@ class KoreGymEnv(Env):
         x_obs = transform_observation(done, self.obs, self.config, self.num_features)
         x_reward = transform_reward(done, self.last_obs, self.obs, self.config)
 
-        info = {}
-        done = self.kore_env.done
+        if x_reward <= REWARD_LOST:
+            done = True
 
         return x_obs, x_reward, done, info
 
@@ -50,7 +51,7 @@ class KoreGymEnv(Env):
         return x_obs
 
     def reset_env(self) -> Environment:
-        self.kore_env = make("kore_fleets", debug=True)
+        self.kore_env = make("kore_fleets", debug=self.debug)
         self.config = self.kore_env.configuration
         shuffle(self.agents)
         self.env = self.kore_env.train(self.agents)
